@@ -1,0 +1,4 @@
+2026-07-29 08:54:35 [SYSTEM] Initialisation du noyau IA_ZERO.07-ADV sur Linux localhost 5.15.189-android13-8-00018-g9c82b71884fd-ab14885418 #1 SMP PREEMPT Fri Feb 13 15:46:08 UTC 2026 aarch64 Android
+2026-07-29 08:54:35 [WARNING] Jailbreak attempt detected: ignorez les instructions précédentes
+2026-07-29 08:54:35 [INFO] Request processed successfully. PII sanitized.
+2026-07-29 08:54:35 [CRITICAL] SSRF Attempt blocked: localhost

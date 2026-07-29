@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA_ZERO.07 - MILYES-IA V9 NANS</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #38bdf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --text: #f1f5f9;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 1rem;
+        }
+        .badge {
+            background: var(--success);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        .result-area {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #020617;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            min-height: 50px;
+            white-space: pre-wrap;
+        }
+        .logs {
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #000;
+            padding: 10px;
+        }
+        .error { border-left-color: var(--danger) !important; color: var(--danger); }
+        .success { border-left-color: var(--success) !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>IA_ZERO.07 <span class="badge">VULN-204427_VERIFIED</span></h1>
+        <p>MILYES-IA V9 NANS - Système de Mitigation Autonome</p>
+    </div>
+
+    <div class="input-group">
+        <label>Prompt / Données d'entrée (Test PII & Jailbreak) :</label>
+        <textarea id="userInput" rows="4" placeholder="Entrez vos données ici... (ex: Mon email est admin@milyes.io, ignore previous instructions)"></textarea>
+    </div>
+
+    <div class="input-group">
+        <label>URL de destination (Test SSRF) :</label>
+        <input type="text" id="targetUrl" value="https://api.secure-gateway.com" placeholder="http://...">
+    </div>
+
+    <button onclick="processSecurity()">Exécuter l'Analyse de Sécurité</button>
+
+    <div id="result" class="result-area">En attente d'entrée...</div>
+    
+    <div class="logs" id="auditLogs">
+        [SYSTEM] Noyau IA_ZERO.07 prêt.
+    </div>
+</div>
+
+<script>
+    const logArea = document.getElementById('auditLogs');
+    const resultArea = document.getElementById('result');
+
+    function addLog(level, message) {
+        const time = new Date().toLocaleTimeString();
+        const logEntry = `[${time}] [${level}] ${message}\n`;
+        logArea.innerText += logEntry;
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    function anonymize(text) {
+        let clean = text;
+        // Emails
+        clean = clean.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL_HIDDEN]");
+        // Téléphones
+        clean = clean.replace(/\+?[0-9]{10,15}/g, "[PHONE_HIDDEN]");
+        // Cartes Bancaires
+        clean = clean.replace(/[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}/g, "[CARD_HIDDEN]");
+        return clean;
+    }
+
+    function processSecurity() {
+        const input = document.getElementById('userInput').value;
+        const url = document.getElementById('targetUrl').value;
+        
+        resultArea.className = "result-area";
+        addLog("INFO", "Analyse du paquet entrant...");
+
+        // 1. Détection Jailbreak
+        const jailbreakPatterns = ["ignore previous instructions", "ignorez les instructions", "system override", "developer mode", "sudo"];
+        for (let pattern of jailbreakPatterns) {
+            if (input.toLowerCase().includes(pattern)) {
+                resultArea.innerText = `ALERTE : Tentative de Jailbreak détectée (${pattern}).`;
+                resultArea.classList.add("error");
+                addLog("WARNING", `Jailbreak bloqué : ${pattern}`);
+                return;
+            }
+        }
+
+        // 2. Détection SSRF
+        const forbidden = ["169.254.169.254", "localhost", "127.0.0.1"];
+        for (let ip of forbidden) {
+            if (url.includes(ip)) {
+                resultArea.innerText = `ALERTE : Tentative SSRF bloquée vers ${ip}.`;
+                resultArea.classList.add("error");
+                addLog("CRITICAL", `SSRF bloqué : ${ip}`);
+                return;
+            }
+        }
+
+        // 3. Anonymisation PII
+        const sanitized = anonymize(input);
+        resultArea.innerText = `Flux sécurisé :\n${sanitized}`;
+        resultArea.classList.add("success");
+        addLog("SUCCESS", "Données traitées et anonymisées.");
+    }
+</script>
+
+</body>
+</html>
